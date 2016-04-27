@@ -55,6 +55,24 @@ go $ loop ([])
     reset! data-center new-data
     recur
 
+defn rerender-view ()
+  go $ doseq
+    [] state-entry $ :states @data-center
+    let
+      (state-id $ first state-entry)
+        new-store $ extract-tree state-id @data-center
+        old-store $ or (get @client-caches state-id)
+          {}
+        changes $ differ/diff old-store new-store
+
+      if
+        not= changes $ [] ({})
+          {}
+        do
+          println |∆=client state-id changes
+          >! ws-server/send-chan $ [] state-id changes
+          swap! client-caches assoc state-id new-store
+
 defn -main ()
   nodejs/enable-util-print!
   js/setInterval
@@ -72,3 +90,4 @@ set! *main-cli-fn* -main
 
 defn on-jsload ()
   println |reload
+  rerender-view
