@@ -10,5 +10,8 @@
   "license": "MIT",
   "devDependencies": {
     "ws": "^1.1.0"
+  },
+  "dependencies": {
+    "shortid": "^2.2.6"
   }
 }

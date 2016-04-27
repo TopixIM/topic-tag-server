@@ -11,12 +11,14 @@
                  [figwheel-sidecar          "0.5.2"       :scope "test"]
                  [com.cemerick/piggieback "0.2.1"   :scope "test"]
                  [org.clojure/tools.nrepl "0.2.10"  :scope "test"]
-                 [ajchemist/boot-figwheel   "0.5.2-2"     :scope "test"]])
+                 [org.clojure/core.async "0.2.374"  :scope "test"]
+                 [ajchemist/boot-figwheel   "0.5.2-2"     :scope "test"]
+                 [differ "0.3.1"]])
 
 (require '[adzerk.boot-cljs :refer [cljs]]
          '[cirru-sepal.core :refer [cirru-sepal]]
          '[boot-figwheel])
-         
+
 (refer 'boot-figwheel :rename '{cljs-repl fw-cljs-repl}) ; avoid some symbols
 
 (def +version+ "0.1.0")
@@ -37,7 +39,7 @@
 (task-options!
  figwheel {:build-ids  ["dev"]
            :all-builds [{:id "dev"
-                         :compiler {:main 'topic-tag-server.core
+                         :compiler {:main 'tag-server.core
                                     :target :nodejs
                                     :source-map true
                                     :optimizations :none
@@ -45,7 +47,7 @@
                                     :output-dir "server_out/"
                                     :verbose true}
                          :figwheel {:build-id  "dev"
-                                    :on-jsload 'topic-tag-server.core/on-jsload
+                                    :on-jsload 'tag-server.core/on-jsload
                                     :heads-up-display true
                                     :autoload true
                                     :target :nodejs
