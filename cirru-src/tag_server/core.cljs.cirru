@@ -33,8 +33,8 @@ go $ loop ([])
     (msg $ <! ws-server/receive-chan)
       new-data $ apply update-store (cons @data-center msg)
 
-    println "|received message" $ pr-str msg
-    println |∆=db $ differ/diff @data-center new-data
+    -- println "|received message" $ pr-str msg
+    -- println |∆=db $ differ/diff @data-center new-data
     doseq
       [] state-entry $ :states new-data
       let
@@ -48,7 +48,7 @@ go $ loop ([])
           not= changes $ [] ({})
             {}
           do
-            println |∆=client state-id changes
+            -- println |∆=client state-id changes
             >! ws-server/send-chan $ [] state-id changes
             swap! client-caches assoc state-id new-store
 

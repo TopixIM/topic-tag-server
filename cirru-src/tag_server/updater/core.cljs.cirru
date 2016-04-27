@@ -2,6 +2,8 @@
 ns tag-server.updater.core $ :require
   [] tag-server.updater.state :as state
   [] tag-server.updater.user :as user
+  [] tag-server.updater.tag :as tag
+  [] tag-server.updater.query :as query
 
 defn no-op-updater
   db op-data state-id op-id op-time
@@ -11,6 +13,6 @@ defn update-store
   db op op-data state-id op-id op-time
   .log js/console "|trying to update store"
   let
-    (update-method $ case op (:state/connect state/connect) (:state/disconnect state/connect) (:user/enter user/enter) (do (println "|found no handler for:" op) (, no-op-updater)))
+    (update-method $ case op (:state/connect state/connect) (:state/disconnect state/connect) (:user/enter user/enter) (:user/rm-tag user/rm-tag) (:user/select-tag user/select-tag) (:tag/submit tag/submit) (:query/tags query/tags) (do (println "|found no handler for:" op) (, no-op-updater)))
 
     update-method db op-data state-id op-id op-time

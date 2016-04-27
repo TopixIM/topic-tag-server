@@ -8,8 +8,9 @@ def database $ {} (:users $ {})
 
 def state $ {} (:id nil)
   :user-id nil
-  :notifications $ []
+  :notifications $ {}
   :router $ [] :home nil
+  :results $ {}
 
 def user $ {} (:id nil)
   :name nil
@@ -18,7 +19,7 @@ def user $ {} (:id nil)
   :password |
 
 def tag $ {} (:id nil)
-  :name nil
+  :text nil
 
 def topic $ {} (:id nil)
   :name nil
@@ -30,6 +31,6 @@ def message $ {} (:id nil)
   :text |
 
 def store $ {} (:state nil)
-  :results $ {}
   :tags $ {}
   :topics $ {}
+  :user nil
