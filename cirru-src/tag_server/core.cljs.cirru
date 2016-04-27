@@ -13,7 +13,7 @@ ns tag-server.core
 
 def fs $ js/require |fs
 
-def db-filename |target/db.edn
+def db-filename |db.edn
 
 defonce data-center $ atom
   if (.existsSync fs db-filename)
@@ -31,12 +31,9 @@ defonce client-caches $ atom ({})
 go $ loop ([])
   let
     (msg $ <! ws-server/receive-chan)
-      new-data $ update-store @data-center (:type msg)
-        :data msg
-        :meta msg
+      new-data $ apply update-store (cons @data-center msg)
 
-    println |--> (:type msg)
-      :data msg
+    println "|received message" $ pr-str msg
     println |∆=db $ differ/diff @data-center new-data
     doseq
       [] state-entry $ :states new-data
@@ -52,7 +49,7 @@ go $ loop ([])
             {}
           do
             println |∆=client state-id changes
-            >! ws-server/send-chan $ {} :target state-id :changes changes
+            >! ws-server/send-chan $ [] state-id changes
             swap! client-caches assoc state-id new-store
 
     reset! data-center new-data
@@ -65,7 +62,7 @@ defn -main ()
       if (not= @data-center @file-cache)
         do (reset! file-cache @data-center)
           .writeFileSync fs db-filename $ pr-str @file-cache
-          println "|wrote to target/db.edn"
+          println "|wrote to " db-filename
 
     , 20000
 
@@ -74,4 +71,4 @@ defn -main ()
 set! *main-cli-fn* -main
 
 defn on-jsload ()
-  println |demo
+  println |reload

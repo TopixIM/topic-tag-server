@@ -26,25 +26,19 @@ def wss $ new WebSocketServer (js-obj |port 4010)
       now $ new js/Date
     println "|new socket" state-id
     go $ >! receive-chan
-      {} (:type :state/connect)
-        :data nil
-        :meta $ {} :time (.valueOf now)
-          , :id
-          .generate shortid
-          , :state-id state-id
+      [] :state/connect nil state-id (.generate shortid)
+        .valueOf now
 
     swap! socket-registry assoc state-id socket
     .on socket |message $ fn (rawData)
       let
         (now $ new js/Date)
           action $ reader/read-string rawData
+          ([] op op-data) action
+
         go $ >! receive-chan
-          {} (:type :event)
-            :data action
-            :meta $ {} :time (.valueOf now)
-              , :id
-              .generate shortid
-              , :state-id state-id
+          [] op op-data state-id (.generate shortid)
+            .valueOf now
 
     .on socket |close $ fn ()
       let
@@ -52,21 +46,18 @@ def wss $ new WebSocketServer (js-obj |port 4010)
         swap! socket-registry dissoc state-id
         println "|socket close" state-id
         go $ >! receive-chan
-          {} (:type :state/disconnect)
-            :data nil
-            :meta $ {} :state-id state-id :time (.valueOf now)
-              , :id
-              .generate shortid
+          [] :state/disconnect state-id state-id (.generate shortid)
+            .valueOf now
 
 go $ loop ([])
   let
     (msg-pack $ <! send-chan)
       socket $ get @socket-registry (first msg-pack)
 
-    -- println "|sending message pack:" $ pr-str msg-pack
+    println "|sending message pack:" $ pr-str msg-pack
     if (some? socket)
       .send socket $ pr-str (last msg-pack)
-      println "|found not socket:" (first msg-pack)
+      println "|found no socket:" (first msg-pack)
         pr-str @socket-registry
 
     recur
