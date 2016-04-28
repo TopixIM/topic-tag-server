@@ -59,3 +59,12 @@ defn select-tag
           into (hash-set)
             conj tag-ids op-data
           , tag-ids
+
+defn update-profile
+  db op-data state-id op-id op-time
+  let
+    (user-id $ get-in db ([] :states state-id :user-id))
+
+    update-in db ([] :users user-id)
+      fn (user)
+        merge user op-data

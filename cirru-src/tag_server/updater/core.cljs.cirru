@@ -13,6 +13,17 @@ defn update-store
   db op op-data state-id op-id op-time
   .log js/console "|trying to update store"
   let
-    (update-method $ case op (:state/connect state/connect) (:state/disconnect state/connect) (:user/enter user/enter) (:user/rm-tag user/rm-tag) (:user/select-tag user/select-tag) (:tag/submit tag/submit) (:query/tags query/tags) (do (println "|found no handler for:" op) (, no-op-updater)))
+    (hint "|found no handler for:")
+      update-method $ case op (:state/connect state/connect)
+        :state/disconnect state/connect
+        :state/route state/route
+        :user/enter user/enter
+        :user/rm-tag user/rm-tag
+        :user/update user/update-profile
+        :user/select-tag user/select-tag
+        :tag/submit tag/submit
+        :query/tags query/tags
+        do (println hint op)
+          , no-op-updater
 
     update-method db op-data state-id op-id op-time
