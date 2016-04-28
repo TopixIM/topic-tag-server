@@ -16,4 +16,6 @@ defn route
   db op-data state-id op-id op-time
   assoc-in db
     [] :states state-id :router
-    [] op-data nil
+    if (keyword? op-data)
+      [] op-data nil
+      , op-data

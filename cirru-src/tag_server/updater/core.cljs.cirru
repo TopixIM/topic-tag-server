@@ -4,6 +4,8 @@ ns tag-server.updater.core $ :require
   [] tag-server.updater.user :as user
   [] tag-server.updater.tag :as tag
   [] tag-server.updater.query :as query
+  [] tag-server.updater.topic :as topic
+  [] tag-server.updater.message :as message
 
 defn no-op-updater
   db op-data state-id op-id op-time
@@ -23,6 +25,8 @@ defn update-store
         :user/select-tag user/select-tag
         :tag/submit tag/submit
         :query/tags query/tags
+        :topic/create topic/create
+        :message/create message/create
         do (println hint op)
           , no-op-updater
 

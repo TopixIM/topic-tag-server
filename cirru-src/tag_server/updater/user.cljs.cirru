@@ -16,9 +16,14 @@ defn enter
     if (some? maybe-user)
       if
         = password $ :password maybe-user
-        assoc-in db
-          [] :states state-id :user-id
-          :id maybe-user
+        -> db
+          assoc-in
+            [] :states state-id :user-id
+            :id maybe-user
+          assoc-in
+            [] :states state-id :router
+            [] :tags nil
+
         do
           println "|wrong password" password maybe-user
           , db
@@ -26,6 +31,9 @@ defn enter
       -> db
         assoc-in ([] :users op-id)
           assoc schema/user :id op-id :name username :password password
+        assoc-in
+          [] :states state-id :router
+          [] :tags nil
         assoc-in
           [] :states state-id :user-id
           , op-id

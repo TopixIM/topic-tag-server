@@ -22,15 +22,18 @@ def tag $ {} (:id nil)
   :text nil
 
 def topic $ {} (:id nil)
-  :name nil
+  :text nil
   :tag-ids $ hash-set
+  :time nil
 
 def message $ {} (:id nil)
   :user-id nil
   :topic-id nil
+  :time nil
   :text |
 
 def store $ {} (:state nil)
-  :tags $ {}
-  :topics $ {}
+  :tags $ list
+  :topics $ list
   :user nil
+  :current-topic nil
