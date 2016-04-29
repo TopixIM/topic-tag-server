@@ -23,6 +23,7 @@ defn update-store
         :user/rm-tag user/rm-tag
         :user/update user/update-profile
         :user/select-tag user/select-tag
+        :user/logout user/logout
         :tag/submit tag/submit
         :query/tags query/tags
         :topic/create topic/create

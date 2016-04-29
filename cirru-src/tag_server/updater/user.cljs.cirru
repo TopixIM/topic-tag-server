@@ -22,7 +22,7 @@ defn enter
             :id maybe-user
           assoc-in
             [] :states state-id :router
-            [] :tags nil
+            [] :my-tags nil
 
         do
           println "|wrong password" password maybe-user
@@ -33,7 +33,7 @@ defn enter
           assoc schema/user :id op-id :name username :password password
         assoc-in
           [] :states state-id :router
-          [] :tags nil
+          [] :my-tags nil
         assoc-in
           [] :states state-id :user-id
           , op-id
@@ -76,3 +76,9 @@ defn update-profile
     update-in db ([] :users user-id)
       fn (user)
         merge user op-data
+
+defn logout
+  db op-data state-id op-id op-time
+  assoc-in db
+    [] :states state-id :user-id
+    , nil
