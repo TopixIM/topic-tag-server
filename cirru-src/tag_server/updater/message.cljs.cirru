@@ -11,6 +11,10 @@ defn create
         [] :states state-id :user-id
       new-message $ assoc schema/message :id op-id :text op-data :topic-id topic-id :time op-time :user-id user-id
 
-    assoc-in db
-      [] :topics topic-id :messages op-id
-      , new-message
+    -> db
+      assoc-in
+        [] :topics topic-id :messages op-id
+        , new-message
+      assoc-in
+        [] :states state-id :buffer
+        , |

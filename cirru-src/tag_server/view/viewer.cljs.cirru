@@ -26,6 +26,16 @@ defn extract-tree (state-id db)
           tags $ map val (:tags db)
           topics $ ->>
             vals $ :topics db
+            map $ fn (topic)
+              let
+                (tags $ ->> (:tag-ids topic) (map $ fn (tag-id) (get-in db $ [] :tags tag-id)))
+
+                -> topic (dissoc :messages)
+                  assoc :tags tags
+                  assoc :messages-count $ count (:messages topic)
+
+          my-topics $ ->>
+            vals $ :topics db
             filter $ fn (topic)
               if
                 and
@@ -46,6 +56,7 @@ defn extract-tree (state-id db)
 
                 -> topic (dissoc :messages)
                   assoc :tags tags
+                  assoc :messages-count $ count (:messages topic)
 
           topic-id $ if
             = :chat-room $ first router
@@ -76,6 +87,28 @@ defn extract-tree (state-id db)
 
                   into $ {}
 
-        assoc schema/store :state state :tags tags :my-tags my-tags :topics topics :user user :current-topic current-topic :live-users live-users
+          buffers $ if (nil? topic-id)
+            list
+            ->>
+              vals $ :states db
+              filter $ fn (state)
+                and
+                  some? $ :user-id state
+                  >=
+                    count $ :buffer state
+                    , 0
+                  = (:router state)
+                    , router
+
+              map $ fn (state)
+                let
+                  (user $ get-in db ([] :users $ :user-id state))
+
+                  {} (:id state-id)
+                    :text $ :buffer state
+                    :avatar $ :avatar user
+                    :user user
+
+        assoc schema/store :state state :tags tags :my-tags my-tags :topics topics :user user :current-topic current-topic :live-users live-users :buffers buffers :my-topics my-topics
 
       assoc schema/store :state state :live-users live-users

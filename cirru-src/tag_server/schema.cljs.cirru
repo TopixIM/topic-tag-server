@@ -38,6 +38,12 @@ def store $ {} (:state nil)
   :my-tags $ list
   :tags $ list
   :topics $ list
+  :my-topics $ list
   :user nil
   :current-topic nil
   :live-users $ list
+  :buffer |
+
+def notification $ {} (:id nil)
+  :text |
+  :type :info

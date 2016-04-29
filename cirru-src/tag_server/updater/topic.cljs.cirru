@@ -13,3 +13,32 @@ defn create
       assoc-in
         [] :states state-id :router
         [] :topics nil
+
+defn open-editor
+  db op-data state-id op-id op-time
+  let
+    (topic $ get-in db ([] :topics op-data))
+      tags $ map
+        fn (tag-id)
+          get-in db $ [] :tags tag-id
+        :tag-ids topic
+
+      topic-data $ assoc topic :tags tags
+
+    -> db $ assoc-in
+      [] :states state-id :router
+      [] :topic-editor topic-data
+
+defn update-topic
+  db op-data state-id op-id op-time
+  let
+    (([] topic-id topic-changes) op-data)
+
+    -> db
+      update-in ([] :topics topic-id)
+        fn (topic)
+          merge topic topic-changes
+
+      assoc-in
+        [] :states state-id :router
+        [] :chat-room topic-id

@@ -89,5 +89,5 @@ defn -main ()
 set! *main-cli-fn* -main
 
 defn on-jsload ()
-  println |reload
+  println "|code updated..."
   rerender-view
