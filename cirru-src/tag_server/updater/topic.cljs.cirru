@@ -7,5 +7,9 @@ defn create
   let
     (new-topic $ -> schema/topic (assoc :id op-id :time op-time) (merge op-data))
 
-    assoc-in db ([] :topics op-id)
-      , new-topic
+    -> db
+      assoc-in ([] :topics op-id)
+        , new-topic
+      assoc-in
+        [] :states state-id :router
+        [] :topics nil

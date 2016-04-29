@@ -17,23 +17,35 @@ defn extract-tree (state-id db)
     if (some? user-id)
       let
         (user $ get-in db ([] :users user-id))
+          router $ get-in db
+            [] :states state-id :router
           my-tags $ ->> (:tag-ids user)
             map $ fn (tag-id)
               get-in db $ [] :tags tag-id
 
           tags $ map val (:tags db)
-          topics $ map
-            fn (entry)
+          topics $ ->>
+            vals $ :topics db
+            filter $ fn (topic)
+              if
+                and
+                  = :topics $ first router
+                  some? $ get router 1
+                contains? (:tag-ids topic)
+                  get router 1
+                some
+                  fn (tag-id)
+                    contains? (:tag-ids topic)
+                      , tag-id
+
+                  :tag-ids user
+
+            map $ fn (topic)
               let
-                (topic $ val entry)
-                  tags $ ->> (:tag-ids topic)
-                    map $ fn (tag-id)
-                      get-in db $ [] :tags tag-id
+                (tags $ ->> (:tag-ids topic) (map $ fn (tag-id) (get-in db $ [] :tags tag-id)))
 
                 -> topic (dissoc :messages)
                   assoc :tags tags
-
-            :topics db
 
           topic-id $ if
             = :chat-room $ first router
