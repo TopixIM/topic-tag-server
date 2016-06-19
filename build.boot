@@ -1,22 +1,19 @@
-(set-env!
- :asset-paths #{"assets"}
- :source-paths #{}
- :resource-paths #{"src"}
 
- :dev-dependencies '[]
- :dependencies '[[adzerk/boot-cljs          "1.7.170-3"   :scope "provided"]
-                 [cirru/boot-cirru-sepal    "0.1.1"       :scope "provided"]
+(set-env!
+ :dependencies '[[org.clojure/clojurescript "1.9.76"      :scope "test"]
                  [org.clojure/clojure       "1.8.0"       :scope "test"]
-                 [org.clojure/clojurescript "1.7.228"     :scope "test"]
-                 [figwheel-sidecar          "0.5.2"       :scope "test"]
-                 [com.cemerick/piggieback "0.2.1"   :scope "test"]
-                 [org.clojure/tools.nrepl "0.2.10"  :scope "test"]
-                 [org.clojure/core.async "0.2.374"  :scope "test"]
-                 [ajchemist/boot-figwheel   "0.5.2-2"     :scope "test"]
-                 [differ "0.3.1"]])
+                 [adzerk/boot-cljs          "1.7.228-1"   :scope "test"]
+                 [figwheel-sidecar          "0.5.4-3"     :scope "test"]
+                 [cirru/boot-cirru-sepal    "0.1.8"       :scope "test"]
+                 [com.cemerick/piggieback   "0.2.1"       :scope "test"]
+                 [org.clojure/tools.nrepl   "0.2.10"      :scope "test"]
+                 [ajchemist/boot-figwheel   "0.5.2-1"     :scope "test"]
+                 [adzerk/boot-test          "1.1.1"       :scope "test"]
+                 [cumulo/server             "0.1.0"]])
 
 (require '[adzerk.boot-cljs :refer [cljs]]
-         '[cirru-sepal.core :refer [cirru-sepal]]
+         '[adzerk.boot-test   :refer :all]
+         '[cirru-sepal.core :refer [transform-cirru]]
          '[boot-figwheel])
 
 (refer 'boot-figwheel :rename '{cljs-repl fw-cljs-repl}) ; avoid some symbols
@@ -31,71 +28,89 @@
        :scm         {:url "https://github.com/mvc-works/boot-workflow"}
        :license     {"MIT" "http://opensource.org/licenses/mit-license.php"}})
 
-(set-env! :repositories #(conj % ["clojars" {:url "https://clojars.org/repo/"}]))
-
 (deftask compile-cirru []
-  (cirru-sepal :paths ["cirru-src"]))
+  (set-env!
+    :source-paths #{"cirru/"})
+  (comp
+    (transform-cirru)
+    (target :dir #{"compiled/"})))
 
 (task-options!
  figwheel {:build-ids  ["dev"]
            :all-builds [{:id "dev"
                          :compiler {:main 'tag-server.core
                                     :target :nodejs
-                                    :source-map true
-                                    :optimizations :none
-                                    :output-to "app.js"
-                                    :output-dir "server_out/"
-                                    :verbose false}
+                                    :output-to "app.js"}
                          :figwheel {:build-id  "dev"
                                     :on-jsload 'tag-server.core/on-jsload
-                                    :heads-up-display true
                                     :autoload true
-                                    :target :nodejs
-                                    :debug false}}]
+                                    :heads-up-display true}}]
            :figwheel-options {:repl true
-                              :http-server-root "target"
-                              :load-warninged-code false
-                              :css-dirs ["target"]}})
+                              :open-file-command "e"}})
+
+(deftask watch-cirru []
+  (set-env!
+    :source-paths #{"cirru/"})
+  (comp
+    (watch)
+    (transform-cirru)
+    (target :dir #{"compiled/"})))
 
 (deftask dev []
-  (set-env! :source-paths #(into % ["src"]))
+  (set-env!
+    :source-paths #(into % ["compiled/src/"]))
   (comp
-    (cirru-sepal :paths ["cirru-src"] :watch true)
     (repl)
     (figwheel)
     (target)))
 
 (deftask build-simple []
+  (set-env!
+    :source-paths #{"cirru/src"})
   (comp
-    (compile-cirru)
-    (cljs :compiler-options {:target :nodejs})
+    (transform-cirru)
+    (cljs :optimizations :simple :compiler-options {:target :nodejs})
     (target)))
 
-; bug: after optimization, method exported from npm package breaks
 (deftask build-advanced []
+  (set-env!
+    :source-paths #{"cirru/src"})
   (comp
-    (compile-cirru)
-    (cljs :compiler-options {:target :nodejs} :optimizations :advanced)
+    (transform-cirru)
+    (cljs :optimizations :advanced :compiler-options {:target :nodejs})
     (target)))
 
 (deftask rsync []
-  (fn [next-task]
-    (fn [fileset]
-      (sh "rsync" "-r" "target/" "tiye:repo/mvc-works/boot-workflow" "--exclude" "main.out" "--delete")
-      (next-task fileset))))
+  (with-pre-wrap fileset
+    (sh "rsync" "-r" "target/" "tiye:repo/mvc-works/boot-workflow" "--exclude" "main.out" "--delete")
+    fileset))
 
 (deftask send-tiye []
   (comp
-    (build-advanced)
+    (build-simple)
     (rsync)))
 
 (deftask build []
+  (set-env!
+    :source-paths #{"cirru/src"})
   (comp
-   (pom)
-   (jar)
-   (install)))
+    (transform-cirru)
+    (pom)
+    (jar)
+    (install)
+    (target)))
 
 (deftask deploy []
+  (set-env!
+    :repositories #(conj % ["clojars" {:url "https://clojars.org/repo/"}]))
   (comp
-   (build)
-   (push :repo "clojars" :gpg-sign (not (.endsWith +version+ "-SNAPSHOT")))))
+    (build)
+    (push :repo "clojars" :gpg-sign (not (.endsWith +version+ "-SNAPSHOT")))))
+
+(deftask watch-test []
+  (set-env!
+    :source-paths #{"cirru/src" "cirru/test"})
+  (comp
+    (watch)
+    (transform-cirru)
+    (test :namespaces '#{boot-workflow.test})))
